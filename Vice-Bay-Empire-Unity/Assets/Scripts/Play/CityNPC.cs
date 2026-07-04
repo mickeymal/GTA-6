@@ -23,8 +23,20 @@ namespace ViceBayEmpire.Play
 
         CharacterController cc;
         Vector3 wanderDir;
-        float retargetTimer, shootTimer;
+        float retargetTimer, shootTimer, chatTimer;
         bool fleeing, dead, calledCops;
+
+        static readonly string[] CivilianLines =
+        {
+            "Nice weather for the beach, huh?", "You seen the prices downtown lately?",
+            "Watch where you're going!", "Vice Bay never sleeps.",
+            "I swear the cops are everywhere today.", "Spare some change?"
+        };
+        static readonly string[] GangLines =
+        {
+            "This is our block, keep moving.", "You lost, tourist?",
+            "Don't start nothing you can't finish.", "We run these streets."
+        };
 
         public string Prompt => car != null ? "[E] Carjack" : (role == Role.Cop ? null : "[E] Mug");
 
@@ -50,6 +62,7 @@ namespace ViceBayEmpire.Play
 
         void CivilianUpdate()
         {
+            AmbientChatter();
             Vector3 move;
             if (fleeing)
             {
@@ -86,6 +99,20 @@ namespace ViceBayEmpire.Play
                     PlayRefs.Status.TakeDamage(6f, gameObject);
                     Audio.AudioManager.Instance?.PlayGunshot(transform.position, false);
                 }
+            }
+        }
+
+        void AmbientChatter()
+        {
+            if (fleeing || PlayRefs.Player == null) return;
+            chatTimer -= Time.deltaTime;
+            if (chatTimer > 0f) return;
+            chatTimer = Random.Range(8f, 16f);
+            if (Vector3.Distance(transform.position, PlayRefs.Player.position) < 8f && Random.value < 0.5f)
+            {
+                var lines = role == Role.Gang ? GangLines : CivilianLines;
+                DialogueSystem.Instance?.Say(role == Role.Gang ? "Gangster" : "Local",
+                    lines[Random.Range(0, lines.Length)], role == Role.Gang ? 0.85f : 1.05f);
             }
         }
 

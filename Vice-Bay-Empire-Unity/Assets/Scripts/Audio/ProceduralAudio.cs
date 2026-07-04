@@ -100,6 +100,22 @@ namespace ViceBayEmpire.Audio
         public static AudioClip Rain()
             => Make("amb_rain", 1.5f, t => Noise() * 0.18f, loop: true);
 
+        /// <summary>Ocean waves: slow-swelling filtered noise for the beach/bay.</summary>
+        public static AudioClip Waves()
+            => Make("amb_waves", 3.0f, t =>
+            {
+                float swell = 0.5f + 0.5f * Mathf.Sin(2f * Mathf.PI * 0.15f * t);
+                return Noise() * 0.16f * swell + Mathf.Sin(2f * Mathf.PI * 45f * t) * 0.04f;
+            }, loop: true);
+
+        /// <summary>Wind: airy band-limited noise for the airport / rooftops.</summary>
+        public static AudioClip Wind()
+            => Make("amb_wind", 3.0f, t =>
+            {
+                float gust = 0.4f + 0.6f * Mathf.Abs(Mathf.Sin(2f * Mathf.PI * 0.08f * t));
+                return Noise() * 0.12f * gust;
+            }, loop: true);
+
         /// <summary>Placeholder "voice" blip for dialogue lines (a short vowel-like tone).</summary>
         public static AudioClip VoiceBlip(float pitch = 1f)
             => Make("vo_blip", 0.12f, t =>

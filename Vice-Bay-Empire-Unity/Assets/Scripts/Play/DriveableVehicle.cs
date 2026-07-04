@@ -38,6 +38,12 @@ namespace ViceBayEmpire.Play
         PlayerInteractor3D driver;
         bool exploded;
 
+        // AI (traffic) control when there is no player driver
+        bool aiControlled;
+        float aiThrottle, aiSteer;
+        public void SetAI(float throttle, float steer) { aiControlled = true; aiThrottle = throttle; aiSteer = steer; }
+        public void ClearAI() => aiControlled = false;
+
         public bool Occupied => driver != null;
         public float Speed => rb ? rb.velocity.magnitude : 0f;
         public float Altitude => transform.position.y;
@@ -56,6 +62,8 @@ namespace ViceBayEmpire.Play
         // ---------------------------------------------------------------- enter/exit
         public void Enter(PlayerInteractor3D who)
         {
+            GetComponent<TrafficDriver>()?.Relinquish();   // hop into moving traffic
+            aiControlled = false;
             driver = who;
             PlayRefs.CurrentVehicle = this;
             var p = who.transform;
@@ -101,6 +109,11 @@ namespace ViceBayEmpire.Play
                     if (Input.GetKey(KeyCode.Space)) vertical += 1f;
                     if (Input.GetKey(KeyCode.LeftControl)) vertical -= 1f;
                 }
+            }
+            else if (aiControlled)   // AI traffic driver
+            {
+                throttle = aiThrottle;
+                steer = aiSteer;
             }
 
             switch (mode)

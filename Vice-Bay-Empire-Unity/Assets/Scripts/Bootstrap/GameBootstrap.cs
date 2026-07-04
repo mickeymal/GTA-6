@@ -34,7 +34,9 @@ namespace ViceBayEmpire.Bootstrap
             BuildCamera(player);
             SeedContent(player);
             SpawnVehicles();
+            SpawnTraffic();
             SpawnNPCs();
+            PlaceProperties();
             BuildUI();
 
             GameManager.Instance.StartNewGame();
@@ -166,45 +168,82 @@ namespace ViceBayEmpire.Bootstrap
             bm.availableBusinesses.Add(MakeBiz("biz_lab", "Coastal Drug Lab", BusinessType.DrugLab, legal: false, cost: 220000, daily: 0, new Vector3(-60, 0, -30)));
             bm.availableBusinesses.Add(MakeBiz("biz_hack", "Hack Farm", BusinessType.HackFarm, legal: false, cost: 150000, daily: 0, new Vector3(50, 0, 20)));
 
-            // properties
+            // properties across districts: safehouse (slums), mansion (beach), penthouse
+            // (downtown), yacht (bay)
             var pm = PropertyManager.Instance;
-            pm.allProperties.Add(MakeProp("prop_safe", "Little Haiti Safehouse", PropertyType.Safehouse, 0, new Vector3(0, 1, -50)));
-            pm.allProperties.Add(MakeProp("prop_pent", "Ocean Penthouse", PropertyType.Penthouse, 350000, new Vector3(40, 1, -10)));
-            pm.allProperties.Add(MakeProp("prop_yacht", "Mega Yacht", PropertyType.Yacht, 1200000, new Vector3(0, 1, 100)));
+            pm.allProperties.Add(MakeProp("prop_safe", "Slums Safehouse", PropertyType.Safehouse, 0, new Vector3(-72, 1, -46)));
+            pm.allProperties.Add(MakeProp("prop_pent", "Downtown Penthouse", PropertyType.Penthouse, 350000, new Vector3(10, 1, 8)));
+            pm.allProperties.Add(MakeProp("prop_mansion", "Beach Mansion", PropertyType.Mansion, 900000, new Vector3(74, 1, -34)));
+            pm.allProperties.Add(MakeProp("prop_yacht", "Bay Mega Yacht", PropertyType.Yacht, 1500000, new Vector3(-20, 1, 76)));
             pm.owned.Add("prop_safe"); pm.activeHomeId = "prop_safe";
-            PlayRefs.Status.respawnPoint = new Vector3(0, 1.2f, -34);
+            PlayRefs.Status.respawnPoint = new Vector3(4, 1.4f, -30);
         }
 
         // ---------------------------------------------------------------- spawns
         void SpawnVehicles()
         {
-            VehicleFactory.Build(DriveableVehicle.Mode.Car, new Vector3(6, 0.6f, -28), new Color(0.8f, 0.2f, 0.3f), "Banshee");
-            VehicleFactory.Build(DriveableVehicle.Mode.Car, new Vector3(-8, 0.6f, -28), new Color(0.2f, 0.3f, 0.8f), "Sedan");
-            VehicleFactory.Build(DriveableVehicle.Mode.Car, new Vector3(14, 0.6f, 0), new Color(0.9f, 0.8f, 0.2f), "Muscle");
-            VehicleFactory.Build(DriveableVehicle.Mode.Boat, new Vector3(0, 0.6f, 78), new Color(0.9f, 0.9f, 0.95f), "Speedboat");
-            VehicleFactory.Build(DriveableVehicle.Mode.Plane, new Vector3(-70, 0.8f, -55), new Color(0.9f, 0.3f, 0.3f), "Stunt Plane");
-            VehicleFactory.Build(DriveableVehicle.Mode.Helicopter, new Vector3(-70, 0.8f, 10), new Color(0.3f, 0.6f, 0.8f), "Sparrow");
+            // player-ready cars on downtown streets
+            VehicleFactory.Build(DriveableVehicle.Mode.Car, new Vector3(6, 0.6f, -30), new Color(0.85f, 0.2f, 0.3f), "Banshee");
+            VehicleFactory.Build(DriveableVehicle.Mode.Car, new Vector3(-20, 0.6f, -8), new Color(0.9f, 0.8f, 0.2f), "Muscle");
+            VehicleFactory.Build(DriveableVehicle.Mode.Car, new Vector3(-95, 0.6f, 0), new Color(0.4f, 0.42f, 0.45f), "Rustbucket"); // slums
+            // boats in the harbor / bay
+            VehicleFactory.Build(DriveableVehicle.Mode.Boat, new Vector3(-58, 0.6f, CityLayout.BayZ + 6), new Color(0.9f, 0.9f, 0.95f), "Speedboat");
+            VehicleFactory.Build(DriveableVehicle.Mode.Boat, new Vector3(20, 0.6f, CityLayout.BayZ + 8), new Color(0.7f, 0.85f, 0.9f), "Jet Ski");
+            // aircraft at the airport
+            VehicleFactory.Build(DriveableVehicle.Mode.Plane, new Vector3(-80, 0.9f, -92), new Color(0.9f, 0.3f, 0.3f), "Stunt Plane");
+            VehicleFactory.Build(DriveableVehicle.Mode.Helicopter, new Vector3(10, 0.9f, -85), new Color(0.3f, 0.6f, 0.8f), "Sparrow");
+        }
+
+        /// <summary>Ambient AI traffic that drives the road grid.</summary>
+        void SpawnTraffic()
+        {
+            var rng = new System.Random(7);
+            Color[] cols = { new(0.8f, 0.8f, 0.85f), new(0.2f, 0.5f, 0.3f), new(0.5f, 0.3f, 0.6f), new(0.9f, 0.6f, 0.2f) };
+            for (int i = 0; i < 7; i++)
+            {
+                var node = new Vector2Int(rng.Next(CityLayout.RoadsX.Length), rng.Next(CityLayout.RoadsZ.Length));
+                Vector3 pos = CityLayout.NodePos(node) + new Vector3(0, 0.1f, 0);
+                var car = VehicleFactory.Build(DriveableVehicle.Mode.Car, pos, cols[rng.Next(cols.Length)], "Traffic");
+                car.gameObject.AddComponent<TrafficDriver>();
+            }
         }
 
         void SpawnNPCs()
         {
             var rng = new System.Random(3);
-            for (int i = 0; i < 16; i++)
+            // pedestrians spread across the land, gang members clustered in the slums
+            for (int i = 0; i < 22; i++)
             {
+                float x = rng.Next((int)CityLayout.LandXMin + 6, (int)CityLayout.OceanX - 6);
+                float z = rng.Next((int)CityLayout.LandZMin + 6, (int)CityLayout.BayZ - 6);
                 var go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 go.name = "Pedestrian";
-                go.transform.position = new Vector3(rng.Next(-80, 80), 1, rng.Next(-60, 60));
-                MaterialFactory.Paint(go, new Color(0.6f + (float)rng.NextDouble() * 0.3f, 0.6f, 0.5f));
+                go.transform.position = new Vector3(x, 1, z);
+                bool slums = x < -60;
+                MaterialFactory.Paint(go, new Color(0.55f + (float)rng.NextDouble() * 0.35f, 0.55f, 0.5f));
                 var npc = go.AddComponent<CityNPC>();
-                npc.role = rng.Next(5) == 0 ? CityNPC.Role.Gang : CityNPC.Role.Civilian;
+                npc.role = (slums && rng.Next(2) == 0) ? CityNPC.Role.Gang : CityNPC.Role.Civilian;
             }
-            // one driver you can carjack: park a car and mark its "driver"
-            var jackCar = VehicleFactory.Build(DriveableVehicle.Mode.Car, new Vector3(0, 0.6f, 26), new Color(0.3f, 0.7f, 0.3f), "Taxi");
+            // a parked car with a driver you can carjack, downtown
+            var jackCar = VehicleFactory.Build(DriveableVehicle.Mode.Car, new Vector3(20, 0.6f, 20), new Color(0.3f, 0.7f, 0.3f), "Taxi");
             var driver = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            driver.name = "Driver"; driver.transform.position = jackCar.transform.position + Vector3.up;
+            driver.name = "Driver"; driver.transform.position = jackCar.transform.position + Vector3.up + Vector3.right * 2;
             MaterialFactory.Paint(driver, new Color(0.8f, 0.7f, 0.5f));
-            var dn = driver.AddComponent<CityNPC>();
-            dn.car = jackCar;
+            driver.AddComponent<CityNPC>().car = jackCar;
+        }
+
+        /// <summary>Place buyable-property door markers at each property's entrance.</summary>
+        void PlaceProperties()
+        {
+            foreach (var prop in PropertyManager.Instance.allProperties)
+            {
+                var door = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                door.name = "PropertyDoor_" + prop.id;
+                door.transform.position = prop.entrancePosition + Vector3.up;
+                door.transform.localScale = new Vector3(2f, 2.5f, 0.4f);
+                MaterialFactory.Paint(door, new Color(0.9f, 0.75f, 0.2f), 0.5f, emissive: true);
+                door.AddComponent<PropertyMarker>().property = prop;
+            }
         }
 
         void BuildUI()

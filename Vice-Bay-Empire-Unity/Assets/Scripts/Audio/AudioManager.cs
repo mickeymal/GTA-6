@@ -42,6 +42,8 @@ namespace ViceBayEmpire.Audio
             clips["siren"] = sirenOverride ? sirenOverride : ProceduralAudio.Siren();
             clips["ambience"] = ambienceOverride ? ambienceOverride : ProceduralAudio.CityAmbience();
             clips["rain"] = rainOverride ? rainOverride : ProceduralAudio.Rain();
+            clips["waves"] = ProceduralAudio.Waves();
+            clips["wind"] = ProceduralAudio.Wind();
 
             // one-shot voice pool + sfx pool
             for (int i = 0; i < 12; i++)
@@ -106,6 +108,24 @@ namespace ViceBayEmpire.Audio
             src.spatialBlend = 0.9f;
             src.volume = 0.5f;
             src.maxDistance = 90f;
+            src.Play();
+            return src;
+        }
+
+        /// <summary>Place a looping positional (3D) ambient source in the world (city hum,
+        /// waves, wind). Returns it so callers can tweak range/volume.</summary>
+        public AudioSource PlaceAmbient(string key, Vector3 pos, float volume = 0.5f, float radius = 60f)
+        {
+            if (!clips.TryGetValue(key, out var clip) || clip == null) return null;
+            var src = new GameObject($"amb_{key}").AddComponent<AudioSource>();
+            src.transform.position = pos;
+            src.clip = clip;
+            src.loop = true;
+            src.spatialBlend = 1f;             // fully 3D
+            src.rolloffMode = AudioRolloffMode.Linear;
+            src.minDistance = radius * 0.25f;
+            src.maxDistance = radius;
+            src.volume = volume;
             src.Play();
             return src;
         }

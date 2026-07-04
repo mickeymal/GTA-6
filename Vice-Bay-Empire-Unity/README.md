@@ -22,15 +22,55 @@ endgame systems (stock market, gang wars, sports, contracts).
 2. Copy this project's `Assets/` folder into your project's `Assets/`.
 3. **Edit ▸ Project Settings ▸ Player ▸ Active Input Handling** → set to **Both**
    (or *Input Manager (Old)*). The scripts use the legacy `Input` API.
-4. Make sure there is a tag named **`Player`** (there is by default).
-5. In an **empty scene**, create an empty GameObject and add the
-   **`GameBootstrap`** component (Add Component ▸ search "GameBootstrap").
-6. Press **Play**. The city, player, vehicles, NPCs, HUD, audio and menus build
-   themselves. That's it.
+4. From the menu bar, click **ViceBay ▸ Create ViceBay_MainScene**. This generates
+   `Assets/Scenes/ViceBay_MainScene.unity` with a single `GameBootstrap` object and
+   adds it to Build Settings.
+5. Press **Play**. The entire Vice Bay map builds itself.
+
+That's the whole setup. (Prefer to do it by hand? Make an empty scene, add an empty
+GameObject, add the **`GameBootstrap`** component, press Play — same result.)
 
 > No URP required, no NavMesh bake, no prefabs, no fonts. If you use URP and things
 > look pink, the materials just didn't find the Lit shader — `MaterialFactory` falls
 > back automatically, but re-import once and it resolves.
+
+## The map — a small, dense Vice City
+
+`ViceBay_MainScene` builds a compact Miami laid out on a shared road grid
+(`CityLayout`), so every district is a short drive apart:
+
+```
+                     ~~~~~~~~  BAY / HARBOR (boats, yacht)  ~~~~~~~~
+   [ SLUMS /            piers                         Downtown towers   ] O
+   [ INDUSTRIAL ]   ============ road grid ============  (neon)         ] C
+   [ warehouses ]        bank        penthouse                          ] E
+   [ tanks      ]        store                            Beach Mansion ] A
+   [------------ AIRPORT runway + hangar ------------]    palms + sand  ] N
+```
+
+- **Downtown** — tall neon towers, the penthouse, the robbable **bank**, an ATM and gun shop.
+- **Slums / Industrial** (west) — low drab blocks, warehouses, storage tanks, the
+  robbable **convenience store**, the starter **safehouse**.
+- **Beach** (east coast) — sand promenade, palms, the **mansion**, swimmable **ocean**.
+- **Bay / Harbor** (north) — piers, boats/jet ski, the buyable **yacht**, swimmable water.
+- **Airport** (south) — a long runway with markings, hangar and control tower; the
+  plane and helicopter spawn here.
+- **Roads** connect all of it, with **AI traffic** cruising the grid (hop into a moving
+  car with `F`).
+
+### Robbable interiors
+The **bank** and **store** are real enterable rooms (four walls, a doorway, a lit
+interior). Walk in, aim (`RMB`) at the teller, press `E` to hold up, `E` again to
+demand — comply/resist/alarm play out, and the bank opens a **vault** you must reach.
+
+### Buyable properties (glowing gold doors)
+Safehouse (free, your start home), Downtown Penthouse, Beach Mansion, and a Bay Yacht.
+Walk to the door and press `E` to buy; press `E` when owned to set it as your home/
+save point.
+
+### Ambient 3D audio
+Positional loops are planted in the world: **city hum** downtown, **waves** at the
+ocean and bay, **wind** at the airport — all synthesized, no files.
 
 ## Controls
 
