@@ -39,6 +39,14 @@ full architecture, folder map, scene setup, and asset recommendations.
 
 ---
 
+## Making an executable
+
+Want a double-click `.exe` (or Mac/Linux binary)? See **[BUILD_EXE.md](BUILD_EXE.md)**.
+Short version: the Pygame game packages with one command
+(`pip install pyinstaller && python build_exe.py` → `dist/ViceBayStories.exe` on
+Windows); the Unity game builds from the Editor via **ViceBay ▸ Build ▸ Windows**.
+Both must be built on the OS you want the executable for.
+
 ### Which one runs right now?
 
 The **Pygame** project (root) is immediately playable and passes a 40-check headless
