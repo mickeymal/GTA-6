@@ -126,6 +126,25 @@ namespace ViceBayEmpire.Play
                 GUI.Box(new Rect(Screen.width / 2f - size.x / 2f - 8, Screen.height / 2f + 40, size.x + 16, 28), prompt, s);
             }
 
+            // ---- mission banner (top center) ----
+            var mm = MissionManager.Instance;
+            if (mm != null)
+            {
+                if (mm.Active)
+                {
+                    var titleStyle = new GUIStyle(GUI.skin.label) { fontSize = 15, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
+                    titleStyle.normal.textColor = new Color(1f, 0.85f, 0.3f);
+                    var objStyle = new GUIStyle(GUI.skin.label) { fontSize = 14, alignment = TextAnchor.MiddleCenter };
+                    objStyle.normal.textColor = Color.white;
+                    var box = new Rect(Screen.width / 2f - 250, 8, 500, 46);
+                    GUI.color = new Color(0, 0, 0, 0.5f); GUI.DrawTexture(box, white); GUI.color = Color.white;
+                    GUI.Label(new Rect(box.x, box.y + 4, box.width, 20), "◆ " + mm.MissionTitle, titleStyle);
+                    GUI.Label(new Rect(box.x, box.y + 24, box.width, 20), mm.ObjectiveText, objStyle);
+                }
+                small.normal.textColor = new Color(1f, 0.8f, 0.4f);
+                GUI.Label(new Rect(Screen.width - 220, 108, 210, 18), $"Rep {mm.Reputation}", small);
+            }
+
             // ---- notification feed ----
             float y = 60;
             for (int i = feed.Count - 1; i >= 0; i--)
@@ -162,6 +181,12 @@ namespace ViceBayEmpire.Play
             foreach (var n in FindObjectsOfType<CityNPC>())
                 Blip(n.transform.position, n.role == CityNPC.Role.Cop ? new Color(0.4f, 0.5f, 1f) : new Color(0.6f, 0.9f, 0.6f), 2);
             foreach (var r in FindObjectsOfType<RobberyDesk>()) Blip(r.transform.position, new Color(1f, 0.85f, 0.3f), 3);
+
+            // mission objective marker + giver beacon
+            var mm = MissionManager.Instance;
+            if (mm != null && mm.Marker.HasValue) Blip(mm.Marker.Value, new Color(1f, 0.85f, 0.2f), 4);
+            foreach (var g in FindObjectsOfType<MissionGiver>()) Blip(g.transform.position, new Color(0.8f, 0.5f, 1f), 4);
+
             Blip(player.position, Color.white, 3);
         }
     }

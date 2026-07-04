@@ -25,6 +25,14 @@ namespace ViceBayEmpire.Play
         Vector3 wanderDir;
         float retargetTimer, shootTimer, chatTimer;
         bool fleeing, dead, calledCops;
+        GameObject lastAttacker;
+
+        /// <summary>Public death flag so missions / contracts can watch this NPC.</summary>
+        public bool IsDead => dead;
+        /// <summary>Set when this NPC is a hitman-contract target (reported on death).</summary>
+        public string contractId;
+        /// <summary>Which gang this NPC belongs to (for territory-war kills).</summary>
+        public string gang = "Cartel";
 
         static readonly string[] CivilianLines =
         {
@@ -165,6 +173,7 @@ namespace ViceBayEmpire.Play
         public void TakeDamage(float amount, GameObject source = null)
         {
             if (dead) return;
+            lastAttacker = source;
             health -= amount;
             if (role == Role.Civilian) Panic();
             if (health <= 0f) Die();
@@ -175,6 +184,14 @@ namespace ViceBayEmpire.Play
             dead = true;
             GameEvents.RaiseCrimeCommitted(role == Role.Cop ? 1.0f : 0.6f, transform.position);
             GameManager.Instance.economy.AddCash(Random.Range(15, 80), dirty: true);   // loose cash drop
+
+            // territory war: a gang death in a contested zone advances the takeover
+            if (role == Role.Gang)
+                Endgame.GangTerritory.Instance?.ReportGangKill(transform.position, gang);
+            // hitman contract fulfilment
+            if (!string.IsNullOrEmpty(contractId))
+                DarkWeb.ContractBoard.Instance?.ReportTargetKilled(contractId, lastAttacker);
+
             transform.rotation = Quaternion.Euler(90f, transform.eulerAngles.y, 0f);   // topple
             if (cc) cc.enabled = false;
             Destroy(gameObject, 12f);

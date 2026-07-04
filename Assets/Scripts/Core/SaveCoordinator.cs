@@ -52,6 +52,13 @@ namespace ViceBayEmpire.Core
                         staffCount = b.staff, storedProduct = b.storedProduct, supplyPercent = b.supply
                     });
 
+            var mm = ViceBayEmpire.Play.MissionManager.Instance;
+            if (mm != null)
+            {
+                data.storyMissionsCompleted.AddRange(mm.CompletedIds());
+                data.playerReputation = mm.Reputation;
+            }
+
             SaveSystem.Save(data, slot);
         }
 
@@ -85,6 +92,10 @@ namespace ViceBayEmpire.Core
             }
 
             if (DarkWebMarketplace.Instance != null) DarkWebMarketplace.Instance.reputation = data.darkWebReputation;
+
+            var mm = ViceBayEmpire.Play.MissionManager.Instance;
+            if (mm != null) mm.Restore(data.storyMissionsCompleted, data.playerReputation);
+
             gm.SetState(data.storyComplete ? GameState.Endgame : GameState.Playing);
             GameEvents.RaiseNotify("Game loaded.", NotifyType.Success);
             return true;

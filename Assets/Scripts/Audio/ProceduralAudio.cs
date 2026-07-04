@@ -125,5 +125,33 @@ namespace ViceBayEmpire.Audio
                 return (Mathf.Sin(2f * Mathf.PI * f * t) * 0.5f
                         + Mathf.Sin(2f * Mathf.PI * f * 2f * t) * 0.25f) * env * 0.4f;
             });
+
+        /// <summary>Mission-start cue: two rising tones.</summary>
+        public static AudioClip MissionStart()
+            => Make("cue_start", 0.5f, t =>
+            {
+                float f = t < 0.25f ? 330f : 494f;
+                float env = Mathf.Exp(-(t % 0.25f) * 10f);
+                return Mathf.Sin(2f * Mathf.PI * f * t) * env * 0.35f;
+            });
+
+        /// <summary>Mission-pass cue: triumphant arpeggio.</summary>
+        public static AudioClip MissionPass()
+            => Make("cue_pass", 0.7f, t =>
+            {
+                float[] notes = { 392f, 523f, 659f, 784f };
+                int i = Mathf.Min(3, (int)(t / 0.17f));
+                float env = Mathf.Exp(-(t % 0.17f) * 8f);
+                return Mathf.Sin(2f * Mathf.PI * notes[i] * t) * env * 0.35f;
+            });
+
+        /// <summary>Mission-fail cue: descending tones.</summary>
+        public static AudioClip MissionFail()
+            => Make("cue_fail", 0.6f, t =>
+            {
+                float f = t < 0.3f ? 300f : 200f;
+                float env = Mathf.Exp(-(t % 0.3f) * 7f);
+                return Mathf.Sin(2f * Mathf.PI * f * t) * env * 0.35f;
+            });
     }
 }

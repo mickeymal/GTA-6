@@ -44,6 +44,9 @@ namespace ViceBayEmpire.Audio
             clips["rain"] = rainOverride ? rainOverride : ProceduralAudio.Rain();
             clips["waves"] = ProceduralAudio.Waves();
             clips["wind"] = ProceduralAudio.Wind();
+            clips["mission_start"] = ProceduralAudio.MissionStart();
+            clips["mission_pass"] = ProceduralAudio.MissionPass();
+            clips["mission_fail"] = ProceduralAudio.MissionFail();
 
             // one-shot voice pool + sfx pool
             for (int i = 0; i < 12; i++)
@@ -93,6 +96,9 @@ namespace ViceBayEmpire.Audio
             src.pitch = pitch;
             src.PlayOneShot(clip, volume);
         }
+
+        /// <summary>Play a non-positional UI/mission cue (mission_start / _pass / _fail).</summary>
+        public void PlayCue(string key) => Play(key, Vector3.zero, 0.7f, 1f, spatial: false);
 
         public void PlayGunshot(Vector3 pos, bool suppressed) =>
             Play(suppressed ? "gunshot_supp" : "gunshot", pos, 0.8f, Random.Range(0.95f, 1.05f));

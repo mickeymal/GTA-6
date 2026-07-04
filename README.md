@@ -29,6 +29,33 @@ Unity Hub.
 
 (Alternatively, copy the `Assets/` folder into any existing Unity 3D project.)
 
+## Story & missions
+
+When you press Play you start in a **two-part tutorial** (Rico teaches movement,
+driving, boats, shooting, robbing, the Dark Web and businesses), then a **10-mission
+story arc** — rising from petty crime to kingpin (car theft, store & bank robberies,
+boat smuggling, hits, a turf takeover, aerial recon, a loyalty choice, and a mansion
+finale). Missions are driven by `MissionManager` + `MissionData` ScriptableObjects
+(built in code by `MissionContent`), with:
+
+- **Objective types**: go-to, reach-on-foot, enter/steal a vehicle class, drive/fly
+  to a point, kill a target, rob a location, deliver, raise/lose the wanted level,
+  hold a position, and dialogue choices — plus per-objective **timers**.
+- **On-screen markers** (gold world beacon + minimap blip), a **top-center objective
+  banner**, **dialogue briefings** with voice-blip placeholders and **mission-music
+  cues**, success/fail with **retry**, and **rewards** (cash + reputation).
+- Story jobs start at a **purple giver beacon**; tutorial steps auto-chain.
+- Progress (completed missions + reputation) is saved via the phone's System tab.
+
+## Side content (all wired in and reachable)
+
+- **Hitman contracts** — read the red board by the safehouse or the phone's
+  **Contracts** tab; accept one and a marked target spawns; kill it for ViceCoin.
+- **Gang territory wars** — colored zones on the map (red = enemy, yellow = contested,
+  green = yours). Clear a zone's gang members to conquer it for daily tribute.
+- **Sports** — a **golf** spot, a bay **jet-ski race** (ring the buoys), and a
+  downtown **parachute jump** (lofts you up; steer to the pad). Walk up and press `E`.
+
 That's the whole setup. (Prefer to do it by hand? Make an empty scene, add an empty
 GameObject, add the **`GameBootstrap`** component, press Play — same result.)
 

@@ -17,7 +17,9 @@ namespace ViceBayEmpire.Play
     /// </summary>
     public class MenuSystem : MonoBehaviour
     {
-        enum Panel { None, DarkWeb, Business, Property, Fraud, Stocks, System }
+        public static MenuSystem Instance { get; private set; }
+
+        enum Panel { None, DarkWeb, Business, Property, Fraud, Stocks, Contracts, System }
         Panel panel = Panel.None;
         Vector2 scroll;
 
@@ -25,7 +27,15 @@ namespace ViceBayEmpire.Play
         bool phishing;
         float phishMarker, phishTarget, phishSpeed = 1.2f;
 
+        // tutorial hooks: set true when the player opens these tabs
+        public static bool OpenedDarkWeb, OpenedBusiness;
+
         EconomyManager Eco => GameManager.Instance.economy;
+
+        void Awake() { if (Instance != null && Instance != this) Destroy(this); else Instance = this; }
+
+        /// <summary>Open the phone straight to a tab (used by world terminals / boards).</summary>
+        public void OpenContracts() { panel = Panel.Contracts; PlayRefs.UIBlocking = true; Time.timeScale = 0f; }
 
         void Update()
         {
@@ -57,12 +67,12 @@ namespace ViceBayEmpire.Play
             if (wheelOpen) DrawWeaponWheel();
             if (panel == Panel.None) return;
 
-            float w = 640, h = 460;
+            float w = 730, h = 460;
             var win = new Rect(Screen.width / 2f - w / 2f, Screen.height / 2f - h / 2f, w, h);
             GUI.Box(win, "  VICE PHONE");
 
             // tab buttons
-            string[] tabs = { "Dark Web", "Business", "Property", "Fraud", "Stocks", "System" };
+            string[] tabs = { "Dark Web", "Business", "Property", "Fraud", "Stocks", "Contracts", "System" };
             for (int i = 0; i < tabs.Length; i++)
                 if (GUI.Button(new Rect(win.x + 10 + i * 100, win.y + 26, 96, 26), tabs[i]))
                     panel = (Panel)(i + 1);
@@ -80,6 +90,7 @@ namespace ViceBayEmpire.Play
                 case Panel.Property: DrawProperty(); break;
                 case Panel.Fraud: DrawFraud(); break;
                 case Panel.Stocks: DrawStocks(); break;
+                case Panel.Contracts: DrawContracts(); break;
                 case Panel.System: DrawSystem(); break;
             }
             GUILayout.EndScrollView();
@@ -90,6 +101,7 @@ namespace ViceBayEmpire.Play
 
         void DrawDarkWeb()
         {
+            OpenedDarkWeb = true;   // tutorial hook
             var market = DarkWebMarketplace.Instance;
             if (market == null) { GUILayout.Label("Marketplace offline."); return; }
 
@@ -114,6 +126,7 @@ namespace ViceBayEmpire.Play
 
         void DrawBusiness()
         {
+            OpenedBusiness = true;   // tutorial hook
             var bm = BusinessManager.Instance;
             if (bm == null) return;
             foreach (var def in bm.availableBusinesses)
@@ -202,6 +215,23 @@ namespace ViceBayEmpire.Play
                 GUILayout.Label($"{s.symbol} {s.company}  ${s.price:F2}  (own {sm.Shares(s.symbol)})");
                 if (GUILayout.Button("Buy 10", GUILayout.Width(70))) sm.Buy(s.symbol, 10);
                 if (GUILayout.Button("Sell 10", GUILayout.Width(70))) sm.Sell(s.symbol, 10);
+                GUILayout.EndHorizontal();
+            }
+        }
+
+        void DrawContracts()
+        {
+            var cb = ContractBoard.Instance;
+            if (cb == null) { GUILayout.Label("No board connection."); return; }
+            GUILayout.Label("Anonymous hitman contracts. Accept, then eliminate the target for ViceCoin.");
+            GUILayout.Space(6);
+            foreach (var c in cb.contracts)
+            {
+                GUILayout.BeginHorizontal("box");
+                string status = c.completed ? "[DONE]" : (c.active ? "[ACTIVE]" : "");
+                GUILayout.Label($"{c.targetName}  —  {c.rewardVC:F1} VC  {status}");
+                if (!c.active && !c.completed && GUILayout.Button("Accept", GUILayout.Width(80)))
+                    SideContent.AcceptContract(c.id);
                 GUILayout.EndHorizontal();
             }
         }

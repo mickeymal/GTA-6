@@ -38,9 +38,24 @@ namespace ViceBayEmpire.Bootstrap
             SpawnNPCs();
             PlaceProperties();
             BuildUI();
+            ActivateSideContent();
 
             GameManager.Instance.StartNewGame();
-            GameEvents.RaiseNotify("Vice Bay Empire — walk (WASD), drive (F), rob (aim+E), phone (P).", NotifyType.Info);
+
+            // missions: build the chain and begin the tutorial
+            MissionManager.Instance.Init(MissionContent.Build());
+            MissionManager.Instance.StartGame();
+
+            GameEvents.RaiseNotify("Vice Bay Empire — follow the markers. Walk (WASD), drive (F), rob (aim+E), phone (P).", NotifyType.Info);
+        }
+
+        /// <summary>Seed hitman contracts, gang-war zones, and sports minigames into the world.</summary>
+        void ActivateSideContent()
+        {
+            var container = new GameObject("~SideContent").transform;
+            SideContent.SeedContracts(container);
+            SideContent.SeedGangZones(container);
+            SideContent.PlaceSports(container);
         }
 
         // ---------------------------------------------------------------- managers
@@ -61,6 +76,8 @@ namespace ViceBayEmpire.Bootstrap
             root.AddComponent<BusinessManager>();
             root.AddComponent<PropertyManager>();
             root.AddComponent<StockMarket>();
+            root.AddComponent<GangTerritory>();
+            root.AddComponent<MissionManager>();
             root.AddComponent<SaveCoordinator>();
 
             var police = root.AddComponent<PoliceResponse>();

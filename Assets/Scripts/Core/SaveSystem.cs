@@ -31,6 +31,8 @@ namespace ViceBayEmpire.Core
 
         public List<BusinessSave> businesses = new();
         public List<string> completedStrangerMissions = new();
+        public List<string> storyMissionsCompleted = new();   // mission ids finished
+        public int playerReputation;                          // reputation from missions
         public List<string> collectiblesFound = new();
         public int gangTerritoriesOwned;
         public int darkWebReputation;      // higher = fewer scams, better stock

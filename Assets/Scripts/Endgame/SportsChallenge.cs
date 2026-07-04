@@ -108,9 +108,24 @@ namespace ViceBayEmpire.Endgame
     public class ParachuteJump : SportsChallenge
     {
         public Transform landingZone;
-        protected override void Begin() { base.Begin(); title = "Parachute Jump"; timeLimit = 0f; }
+        bool launched;
+        protected override void Begin()
+        {
+            base.Begin(); title = "Parachute Jump"; timeLimit = 0f; launched = false;
+            // loft the player high above the landing zone so there's something to jump from
+            var player = GameObject.FindWithTag("Player");
+            if (player)
+            {
+                Vector3 up = (landingZone ? landingZone.position : player.transform.position) + Vector3.up * 70f;
+                var move = player.GetComponent<ViceBayEmpire.Play.PlayerMovement3D>();
+                if (move) move.Teleport(up); else player.transform.position = up;
+                launched = true;
+                GameEvents.RaiseNotify("Skydive! Steer toward the landing pad.", NotifyType.Info);
+            }
+        }
         protected override void Tick()
         {
+            if (!launched) return;
             var player = GameObject.FindWithTag("Player");
             if (player && player.transform.position.y < 2f)
             {
