@@ -1,26 +1,34 @@
-# ---- Python (Vice Bay Stories) ----
-__pycache__/
-*.pyc
-saves/
-*.log
+# Unity project .gitignore (Vice Bay Empire)
 
-# ---- PyInstaller build output ----
-build/
-dist/
-*.manifest
+# Unity-generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
 
-# ---- Unity player builds ----
-Vice-Bay-Empire-Unity/Builds/
+# Standalone player builds
+/Builds/
 
-# ---- Unity (Vice Bay Empire) ----
-Vice-Bay-Empire-Unity/[Ll]ibrary/
-Vice-Bay-Empire-Unity/[Tt]emp/
-Vice-Bay-Empire-Unity/[Oo]bj/
-Vice-Bay-Empire-Unity/[Bb]uild/
-Vice-Bay-Empire-Unity/[Bb]uilds/
-Vice-Bay-Empire-Unity/[Ll]ogs/
-Vice-Bay-Empire-Unity/[Uu]serSettings/
-Vice-Bay-Empire-Unity/.vs/
+# Visual Studio / Rider / IDE
+.vs/
+.idea/
 *.csproj
 *.sln
 *.unityproj
+*.userprefs
+*.pidb
+*.booproj
+*.suo
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Crash reports
+sysinfo.txt
+*.stackdump
