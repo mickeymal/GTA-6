@@ -5,34 +5,88 @@ GTA V-level *post-story* depth — a Dark Web marketplace, fraud & cyber-crime,
 a business empire, property & yacht ownership, interactive robberies, and
 endgame systems (stock market, gang wars, sports, contracts).
 
-> **What this repository is.** This is a complete, clean **code architecture** and
-> a set of **working gameplay systems** you drop into a Unity project — managers,
-> ScriptableObject data, event bus, save system, and the prioritized crime/economy
-> systems. It is *not* a pre-built binary or a repo full of 3D art: you supply the
-> city mesh, character models, and vehicle prefabs (see **Assets & placeholders**),
-> then wire the scripts to them in the Editor. Everything here is designed to
-> compile as one assembly and run once the scene references are hooked up.
+> **This build runs immediately — no scene wiring, no art, no data assets.**
+> The whole game **generates itself at runtime** from primitives (capsules for people,
+> boxes for cars/buildings) and **procedurally-synthesized audio**, so you can walk,
+> drive, shoot, rob a bank, buy on the Dark Web, and manage a business empire the
+> moment you press Play. The detailed manager/ScriptableObject architecture is still
+> here underneath; the runtime bootstrap just populates it in code so nothing needs
+> the Editor. Swap in real models/audio later by pointing the factories at prefabs.
 >
-> A separate, **fully runnable 2D version** of this concept lives in the repo root
-> (`Vice Bay Stories`, Python/Pygame) if you want something playable immediately.
+> A separate, **fully runnable 2D version** lives in the repo root
+> (`Vice Bay Stories`, Python/Pygame) and is verified by an automated smoke test.
 
-## Requirements
+## ▶ Play in 30 seconds
 
-- Unity **2022.3 LTS** or newer (URP or HDRP; scripts are render-pipeline agnostic).
-- Packages: **AI Navigation** (NavMesh, used by `NPCReaction`), **TextMeshPro** or
-  uGUI (HUD uses uGUI `Text`/`Image` — swap for TMP if preferred), **Input System**
-  optional (scripts use the legacy `Input` API for portability).
+1. Create a new **3D** project in Unity **2022.3 LTS+** (Built-in or URP — both work).
+2. Copy this project's `Assets/` folder into your project's `Assets/`.
+3. **Edit ▸ Project Settings ▸ Player ▸ Active Input Handling** → set to **Both**
+   (or *Input Manager (Old)*). The scripts use the legacy `Input` API.
+4. Make sure there is a tag named **`Player`** (there is by default).
+5. In an **empty scene**, create an empty GameObject and add the
+   **`GameBootstrap`** component (Add Component ▸ search "GameBootstrap").
+6. Press **Play**. The city, player, vehicles, NPCs, HUD, audio and menus build
+   themselves. That's it.
 
-## Setup
+> No URP required, no NavMesh bake, no prefabs, no fonts. If you use URP and things
+> look pink, the materials just didn't find the Lit shader — `MaterialFactory` falls
+> back automatically, but re-import once and it resolves.
 
-1. Create a new 3D (URP) project in Unity 2022.3+.
-2. Copy the `Assets/` folder from here over your project's `Assets/`.
-3. Install **AI Navigation** via Package Manager (for pedestrian NavMesh).
-4. Build the data assets: right-click in the Project window →
-   `Create ▸ ViceBay ▸ …` to author `WeaponData`, `VehicleData`, `DarkWebItemData`,
-   `BusinessData`, `PropertyData`, `DrugData` assets. A recommended starter set is
-   listed in **Content to author** below.
-5. Open a scene, add the **Bootstrap** hierarchy (see **Scene setup**), and press Play.
+## Controls
+
+| Action | Keys |
+|---|---|
+| Move / sprint / jump-climb | `WASD` / `Shift` / `Space` |
+| Look | Mouse · scroll to zoom |
+| Shoot / aim / reload | `LMB` / `RMB` / `R` |
+| Weapon wheel / cycle | hold `Tab` (click a slot) · `Alt`+scroll |
+| Enter / exit vehicle | `F` |
+| Interact — rob, mug, carjack, ATM | `E` (aim a weapon first to rob/mug) |
+| Phone (Dark Web, business, property, fraud, stocks, save) | `P` |
+| Swim | walk into the bay; `Space`/`Ctrl` up/down |
+
+**Try this first:** grab the red car (`F`), drive to the **Vice National Bank**,
+get out, aim (`RMB`) at the teller and press `E`, press `E` again to demand cash,
+then run as the stars rise. Press `P` to open the Dark Web and buy a skimmer kit.
+
+## What builds at runtime
+
+`GameBootstrap.Awake()` assembles everything:
+- **Managers** — GameManager, EconomyManager (cash + ViceCoin), WorldClock
+  (day/night + weather), WantedSystem, DarkWebMarketplace, FraudCenter, ContractBoard,
+  BusinessManager, PropertyManager, StockMarket, SaveCoordinator, PoliceResponse.
+- **City** (`CityBuilder`) — land, a swimmable water bay, a road grid, neon buildings,
+  a robbable **bank** (teller + vault) and **store**, an **ATM** (skimmer target), a
+  gun-shop marker, and an airstrip.
+- **Player** — capsule with third-person camera, movement (sprint/jump/vault/swim),
+  shooting, and interaction; starts with a pistol + SMG.
+- **Vehicles** (`VehicleFactory`) — car, sedan, muscle, speedboat, stunt plane,
+  helicopter, plus a carjackable taxi, all drivable with class-specific physics.
+- **NPCs** — wandering civilians/gang that flee, panic and call cops; police that
+  spawn and chase as your wanted level climbs.
+- **Audio** (`ProceduralAudio` + `AudioManager`) — synthesized gunfire, engines,
+  explosions, footsteps, UI blips, sirens, city ambience, rain, and dialogue voice
+  blips. Zero audio files required.
+- **UI** — IMGUI HUD (health, cash, crypto, wanted stars, weapon, minimap, prompts,
+  notifications) and the phone menu hub.
+
+## Audio & dialogue integration
+
+- **Audio.** All SFX are generated by `ProceduralAudio` and played through
+  `AudioManager`. To use real clips instead, assign `.wav/.ogg` files to the override
+  fields on the `AudioManager` component (e.g. `gunshotOverride`) — non-null wins over
+  the synth. Engine loops are pitched by speed; ambience/rain react to weather.
+- **Dialogue.** `DialogueSystem` supports quick **barks** (`Say(speaker, line, pitch)`
+  — used by tellers/NPCs during robberies) and full **branching trees** (`StartTree`)
+  rendered with number-key/click choices that apply reputation, flags, money and
+  callbacks. Each line logs a `[VOICE:speaker] "line"` placeholder and plays a
+  synthesized voice blip — drop a real `AudioClip` per line by extending
+  `DialogueSystem.SpeakCurrent()` to look the line up in a voice table.
+
+## Editor-integration path (optional, for a "real" build)
+
+The runtime build is self-contained, but the original inspector-driven scripts are
+still here for when you move to authored content and 3D art:
 
 ## Architecture
 
