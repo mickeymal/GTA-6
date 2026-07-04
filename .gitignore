@@ -1,0 +1,18 @@
+# ---- Python (Vice Bay Stories) ----
+__pycache__/
+*.pyc
+saves/
+*.log
+
+# ---- Unity (Vice Bay Empire) ----
+Vice-Bay-Empire-Unity/[Ll]ibrary/
+Vice-Bay-Empire-Unity/[Tt]emp/
+Vice-Bay-Empire-Unity/[Oo]bj/
+Vice-Bay-Empire-Unity/[Bb]uild/
+Vice-Bay-Empire-Unity/[Bb]uilds/
+Vice-Bay-Empire-Unity/[Ll]ogs/
+Vice-Bay-Empire-Unity/[Uu]serSettings/
+Vice-Bay-Empire-Unity/.vs/
+*.csproj
+*.sln
+*.unityproj
