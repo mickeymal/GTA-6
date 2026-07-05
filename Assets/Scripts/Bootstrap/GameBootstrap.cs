@@ -94,18 +94,39 @@ namespace ViceBayEmpire.Bootstrap
             var sunGo = new GameObject("Sun");
             var sun = sunGo.AddComponent<Light>();
             sun.type = LightType.Directional;
-            sun.intensity = 1.1f;
+            sun.intensity = 1.25f;
+            sun.color = new Color(1f, 0.96f, 0.88f);
             sun.transform.rotation = Quaternion.Euler(50, 150, 0);
             sun.shadows = LightShadows.Soft;
+            sun.shadowStrength = 0.75f;
             GameManager.Instance.clock.sun = sun;
+            RenderSettings.sun = sun;
 
-            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.4f, 0.42f, 0.5f);
+            // real procedural sky instead of a flat gray background, with sky-based ambient
+            var skyShader = Shader.Find("Skybox/Procedural");
+            if (skyShader != null)
+            {
+                var sky = new Material(skyShader);
+                if (sky.HasProperty("_AtmosphereThickness")) sky.SetFloat("_AtmosphereThickness", 1.1f);
+                if (sky.HasProperty("_SkyTint")) sky.SetColor("_SkyTint", new Color(0.45f, 0.6f, 0.85f));
+                if (sky.HasProperty("_GroundColor")) sky.SetColor("_GroundColor", new Color(0.25f, 0.26f, 0.28f));
+                if (sky.HasProperty("_Exposure")) sky.SetFloat("_Exposure", 1.15f);
+                RenderSettings.skybox = sky;
+                RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox;
+            }
+            else
+            {
+                RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+                RenderSettings.ambientLight = new Color(0.5f, 0.52f, 0.6f);
+            }
+            RenderSettings.ambientIntensity = 1.1f;
+            DynamicGI.UpdateEnvironment();
+
             RenderSettings.fog = true;
-            RenderSettings.fogColor = new Color(0.5f, 0.55f, 0.65f);
+            RenderSettings.fogColor = new Color(0.62f, 0.68f, 0.78f);
             RenderSettings.fogMode = FogMode.Linear;
-            RenderSettings.fogStartDistance = 60f;
-            RenderSettings.fogEndDistance = 320f;
+            RenderSettings.fogStartDistance = 90f;
+            RenderSettings.fogEndDistance = 420f;
 
             // simple weather → rain audio + fog density hook
             var clock = GameManager.Instance.clock;
@@ -116,12 +137,11 @@ namespace ViceBayEmpire.Bootstrap
         // ---------------------------------------------------------------- player
         GameObject BuildPlayer(Vector3 spawn)
         {
-            var player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            player.name = "Player";
+            // empty root + humanoid visual (no capsule blob)
+            var player = new GameObject("Player");
             player.tag = "Player";
             player.transform.position = spawn;
-            Destroy(player.GetComponent<Collider>());
-            MaterialFactory.Paint(player, new Color(0.2f, 0.6f, 0.9f));
+            CharacterFactory.BuildHumanoid(player.transform, new Color(0.2f, 0.55f, 0.95f));
 
             var cc = player.AddComponent<CharacterController>();
             cc.height = 2f; cc.center = new Vector3(0, 1, 0); cc.radius = 0.4f;
@@ -150,6 +170,9 @@ namespace ViceBayEmpire.Bootstrap
             var camGo = new GameObject("MainCamera");
             var cam = camGo.AddComponent<Camera>();
             camGo.tag = "MainCamera";
+            cam.clearFlags = CameraClearFlags.Skybox;   // show the sky, not flat gray
+            cam.farClipPlane = 600f;
+            cam.allowHDR = true;
             camGo.AddComponent<AudioListener>();
             var tpc = camGo.AddComponent<ThirdPersonCamera>();
             tpc.target = player.transform;

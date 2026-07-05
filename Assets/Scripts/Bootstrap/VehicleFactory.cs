@@ -34,9 +34,24 @@ namespace ViceBayEmpire.Bootstrap
                     var rotor = Prim(root.transform, PrimitiveType.Cube, new Vector3(0, 1.2f, 0), new Vector3(7f, 0.1f, 0.4f), Color.black);
                     rotor.AddComponent<Spinner>();
                     break;
-                default: // Car
-                    body = Prim(root.transform, PrimitiveType.Cube, Vector3.zero, new Vector3(2f, 0.7f, 4.2f), color);
-                    Prim(root.transform, PrimitiveType.Cube, new Vector3(0, 0.6f, -0.2f), new Vector3(1.8f, 0.7f, 2.2f), color * 0.8f); // cabin
+                default: // Car — glossy body, glass cabin, wheels, headlights
+                    body = Prim(root.transform, PrimitiveType.Cube, new Vector3(0, 0.55f, 0), new Vector3(2f, 0.6f, 4.2f), color);
+                    body.GetComponent<Renderer>().sharedMaterial = MaterialFactory.CarPaint(color);
+                    // lower chassis
+                    Detail(root.transform, PrimitiveType.Cube, new Vector3(0, 0.28f, 0), new Vector3(2.05f, 0.35f, 4.25f), color * 0.5f, 0.4f, 0.5f);
+                    // greenhouse (roof) + tinted glass
+                    Detail(root.transform, PrimitiveType.Cube, new Vector3(0, 1.0f, -0.15f), new Vector3(1.7f, 0.55f, 1.9f), color * 0.85f, 0.7f, 0.6f);
+                    var glass = Detail(root.transform, PrimitiveType.Cube, new Vector3(0, 1.0f, -0.15f), new Vector3(1.74f, 0.5f, 1.86f), Color.black);
+                    glass.GetComponent<Renderer>().sharedMaterial = MaterialFactory.Glass();
+                    // wheels
+                    foreach (var wp in new[] { new Vector3(-0.95f, 0.32f, 1.35f), new Vector3(0.95f, 0.32f, 1.35f),
+                                               new Vector3(-0.95f, 0.32f, -1.35f), new Vector3(0.95f, 0.32f, -1.35f) })
+                        Wheel(root.transform, wp);
+                    // headlights + tail lights
+                    Detail(root.transform, PrimitiveType.Sphere, new Vector3(-0.7f, 0.55f, 2.1f), new Vector3(0.28f, 0.28f, 0.12f), new Color(1f, 0.98f, 0.85f), 0.6f, 0, true);
+                    Detail(root.transform, PrimitiveType.Sphere, new Vector3(0.7f, 0.55f, 2.1f), new Vector3(0.28f, 0.28f, 0.12f), new Color(1f, 0.98f, 0.85f), 0.6f, 0, true);
+                    Detail(root.transform, PrimitiveType.Sphere, new Vector3(-0.7f, 0.55f, -2.1f), new Vector3(0.26f, 0.26f, 0.1f), new Color(1f, 0.15f, 0.1f), 0.6f, 0, true);
+                    Detail(root.transform, PrimitiveType.Sphere, new Vector3(0.7f, 0.55f, -2.1f), new Vector3(0.26f, 0.26f, 0.1f), new Color(1f, 0.15f, 0.1f), 0.6f, 0, true);
                     break;
             }
 
@@ -71,6 +86,32 @@ namespace ViceBayEmpire.Bootstrap
             go.transform.localScale = scale;
             MaterialFactory.Paint(go, color);
             return go;
+        }
+
+        /// <summary>A cosmetic child mesh with no collider (won't affect the vehicle's physics).</summary>
+        static GameObject Detail(Transform parent, PrimitiveType type, Vector3 localPos, Vector3 scale,
+                                 Color color, float smoothness = 0.3f, float metallic = 0f, bool emissive = false)
+        {
+            var go = GameObject.CreatePrimitive(type);
+            go.transform.SetParent(parent);
+            go.transform.localPosition = localPos;
+            go.transform.localScale = scale;
+            var col = go.GetComponent<Collider>();
+            if (col) Object.Destroy(col);
+            MaterialFactory.Paint(go, color, smoothness, emissive, metallic);
+            return go;
+        }
+
+        static void Wheel(Transform parent, Vector3 localPos)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            go.transform.SetParent(parent);
+            go.transform.localPosition = localPos;
+            go.transform.localRotation = Quaternion.Euler(0, 0, 90);   // lay the cylinder on its side
+            go.transform.localScale = new Vector3(0.62f, 0.14f, 0.62f);
+            var col = go.GetComponent<Collider>();
+            if (col) Object.Destroy(col);
+            MaterialFactory.Paint(go, new Color(0.05f, 0.05f, 0.06f), 0.3f);
         }
     }
 

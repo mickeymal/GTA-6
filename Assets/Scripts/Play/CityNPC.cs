@@ -57,8 +57,22 @@ namespace ViceBayEmpire.Play
             cc.height = 2f; cc.center = new Vector3(0, 1, 0); cc.radius = 0.4f;
 
             wanderDir = Random.insideUnitSphere; wanderDir.y = 0; wanderDir.Normalize();
-            if (role == Role.Cop) health = 90f;
-            else if (role == Role.Gang) health = 80f;
+        }
+
+        void Start()
+        {
+            // role health (skip if a spawner already set a custom value, e.g. mission bosses)
+            if (Mathf.Approximately(health, 60f))
+            {
+                if (role == Role.Cop) health = 90f;
+                else if (role == Role.Gang) health = 80f;
+            }
+
+            // swap the capsule blob for a humanoid figure (keeps the spawner's tint as the shirt)
+            var mr = GetComponent<MeshRenderer>();
+            Color shirt = new Color(0.6f, 0.6f, 0.62f);
+            if (mr) { shirt = Bootstrap.MaterialFactory.GetColor(gameObject, shirt); mr.enabled = false; }
+            Bootstrap.CharacterFactory.BuildHumanoid(transform, shirt);
         }
 
         void Update()
